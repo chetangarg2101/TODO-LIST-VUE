@@ -4,22 +4,28 @@ import { ref, onMounted, computed, watch } from 'vue'
 const todos = ref([])
 const input_content = ref('')
 
-const todos_asc = computed(() => todos.value.sort((a, b) => a.createdAt - b.createdAt))
+// No need to sort if you're adding to the top
+const todos_asc = computed(() => todos.value)
 
 const addTodo = () => {
   if (input_content.value.trim() === '') {
     return
   }
-  todos.value.push({
+  todos.value.unshift({  // Use unshift to add to the top
     content: input_content.value,
     done: false,
-    createdAt: new Date().getTime()
+    createdAt: new Date().getTime(),
+    editing: false  // Add an editing state
   })
   input_content.value = ''
 }
 
 const removeTodo = (todo) => {
   todos.value = todos.value.filter(t => t !== todo)
+}
+
+const toggleEdit = (todo) => {
+  todo.editing = !todo.editing
 }
 
 // Save todos to localStorage whenever they change
@@ -52,9 +58,10 @@ onMounted(() => {
             <input type="checkbox" v-model="todo.done" />
           </label>
           <div class="todo-content">
-            <input type="text" v-model="todo.content" />
+            <input type="text" v-model="todo.content" :readonly="!todo.editing" />
           </div>
           <div class="actions">
+            <button class="edit" @click="toggleEdit(todo)">{{ todo.editing ? 'Save' : 'Edit' }}</button>
             <button class="delete" @click="removeTodo(todo)">Delete</button>
           </div>
         </div>
